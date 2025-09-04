@@ -1,6 +1,8 @@
 cwlVersion: v1.2
 $namespaces:
   s: https://schema.org/
+  opa: https://www.openpolicyagent.org/
+  cql2: https://www.ogc.org/standards/cql2/
 s:softwareVersion: 1.0.0
 schemas:
   - http://schema.org/version/9.0/schemaorg-current-http.rdf
@@ -15,6 +17,46 @@ $graph:
         types:
         - $import: https://raw.githubusercontent.com/eoap/schemas/main/ogc.yaml
         - $import: https://raw.githubusercontent.com/eoap/schemas/main/string_format.yaml
+    hints:
+      - class: opa:Policy
+        query: data.workflow.deny[_]
+        module: |
+          package workflow
+
+          # Example: basic bbox sanity checks
+          deny[msg] {
+            input.aoi
+            not valid_bbox(input.aoi)
+            msg := sprintf("aoi invalid: %v", [input.aoi])
+          }
+
+          valid_bbox(b) {
+            count(b) == 4
+            b[0] >= -180
+            b[2] <= 180
+            b[1] >= -90
+            b[3] <= 90
+            b[0] < b[2]
+            b[1] < b[3]
+          }
+          # Example: basic bands sanity checks, one must be "green" and the other "nir" or "nir08"
+          deny[msg] {
+            input.bands
+            not valid_bands(input.bands)
+            msg := sprintf("bands invalid: %v", [input.bands])
+          }
+
+          valid_bands(b) {
+            count(b) == 2
+            b[0] == "green"
+            b[1] == "nir" || b[1] == "nir08"
+          }
+      - class: cql2:Filter
+        queries:
+          - id: bbox_intersection
+            cql2: |
+              s_intersects(inputs.item.geometry, inputs.aoi)
+            message: "The geometry of the provided item must intersect the provided aoi"
     inputs:
       aoi:
         label: area of interest
