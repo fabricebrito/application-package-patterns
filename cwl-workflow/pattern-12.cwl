@@ -19,12 +19,14 @@ $graph:
         - $import: https://raw.githubusercontent.com/eoap/schemas/main/string_format.yaml
     hints:
       - class: opa:Policy
-        query: data.workflow.deny[_]
+        queries:
+        - data.workflow.deny_bbox[_]
+        - data.workflow.deny_bands[_]
         module: |
           package workflow
 
           # Example: basic bbox sanity checks
-          deny[msg] {
+          deny_bbox[msg] {
             input.aoi
             not valid_bbox(input.aoi)
             msg := sprintf("aoi invalid: %v", [input.aoi])
@@ -39,8 +41,9 @@ $graph:
             b[0] < b[2]
             b[1] < b[3]
           }
+
           # Example: basic bands sanity checks, one must be "green" and the other "nir" or "nir08"
-          deny[msg] {
+          deny_bands[msg] {
             input.bands
             not valid_bands(input.bands)
             msg := sprintf("bands invalid: %v", [input.bands])
