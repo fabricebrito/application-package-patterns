@@ -58,7 +58,7 @@ $graph:
         queries:
           - id: bbox_intersection
             cql2: |
-              s_intersects(inputs.item.geometry, inputs.aoi)
+              s_intersects(inputs.item.geometry, ensure_bbox(inputs.aoi))
             message: "The geometry of the provided item must intersect the provided aoi"
     inputs:
       aoi:
