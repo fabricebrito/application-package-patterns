@@ -25,11 +25,12 @@ $graph:
         module: |
           package workflow
 
-          # Example: basic bbox sanity checks
+          # --- BBOX sanity checks ---
+
           deny_bbox[msg] {
-            input.aoi
-            not valid_bbox(input.aoi)
-            msg := sprintf("aoi invalid: %v", [input.aoi])
+            b := input.aoi.bbox
+            not valid_bbox(b)
+            msg := sprintf("invalid aoi.bbox: %v", [b])
           }
 
           valid_bbox(b) {
@@ -42,18 +43,23 @@ $graph:
             b[1] < b[3]
           }
 
-          # Example: basic bands sanity checks, one must be "green" and the other "nir" or "nir08"
+          # --- Bands sanity checks ("green" must be first; second is "nir" or "nir08") ---
+
           deny_bands[msg] {
-            input.bands
-            not valid_bands(input.bands)
-            msg := sprintf("bands invalid: %v", [input.bands])
+            b := input.bands
+            not valid_bands(b)
+            msg := sprintf("invalid bands: %v", [b])
           }
 
           valid_bands(b) {
             count(b) == 2
             b[0] == "green"
-            b[1] == "nir" || b[1] == "nir08"
+            allowed_nir(b[1])
           }
+
+          # helper predicate for the allowed second band (disjunction via multiple rules)
+          allowed_nir(x) { x == "nir" }
+          allowed_nir(x) { x == "nir08" }
       - class: cql2:Filter
         queries:
           - id: bbox_intersection
