@@ -1,5 +1,6 @@
 
 import graphviz
+from cwl2ogc import BaseCWLtypes2OGCConverter
 from cwl2puml import (
     to_puml,
     DiagramType
@@ -19,6 +20,7 @@ from PIL import Image
 from plantuml import deflate_and_encode
 from urllib.request import urlopen
 import cwl_utils
+import sys
 
 class WorkflowViewer():
     def __init__(self, cwl_file, workflow, entrypoint):
@@ -79,6 +81,12 @@ class WorkflowViewer():
         with urlopen(diagram_url) as url:
             img = Image.open(BytesIO(url.read()))
         display(img)
+
+    def display_input_jsonschema(self):
+        wf = _search_workflow(workflow_id=self.entrypoint, workflow=self.workflow)
+        converter = BaseCWLtypes2OGCConverter(wf)
+        
+        converter.dump_inputs_json_schema(stream=sys.stdout, pretty_print=True)
 
     def plot(self):
         args = ["--print-dot", f"{self.cwl_file}#{self.entrypoint}"]
