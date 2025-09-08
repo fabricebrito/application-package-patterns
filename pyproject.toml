@@ -35,7 +35,7 @@ dependencies = [
   "cwl-loader>=0.2.0",
   "plantuml",
   "cwl2puml>=0.2.0",
-  "cwl2ogc>=0.10.0.dev1"
+  "cwl2ogc>=0.10.0.dev2"
 ]
 
 [tool.hatch.metadata]

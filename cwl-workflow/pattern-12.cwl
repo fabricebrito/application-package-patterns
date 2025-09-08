@@ -1,8 +1,7 @@
 cwlVersion: v1.2
 $namespaces:
   s: https://schema.org/
-  opa: https://www.openpolicyagent.org/
-  cql2: https://www.ogc.org/standards/cql2/
+  eoap: http://oeap.github.io/schema
 s:softwareVersion: 1.0.0
 schemas:
   - http://schema.org/version/9.0/schemaorg-current-http.rdf
@@ -12,61 +11,62 @@ $graph:
     label: Water body detection based on NDWI and the otsu threshold
     doc: Water bodies detection based on NDWI and otsu threshold applied to Sentinel-2 or Landsat-9 staged acquisitions
     requirements:
-      - class: ScatterFeatureRequirement
-      - class: SchemaDefRequirement
-        types:
-        - $import: https://raw.githubusercontent.com/eoap/schemas/main/ogc.yaml
-        - $import: https://raw.githubusercontent.com/eoap/schemas/main/string_format.yaml
+    - class: ScatterFeatureRequirement
+    - class: SchemaDefRequirement
+      types:
+      - $import: https://raw.githubusercontent.com/eoap/schemas/main/ogc.yaml
+      - $import: https://raw.githubusercontent.com/eoap/schemas/main/string_format.yaml
     hints:
-      - class: opa:Policy
-        queries:
-        - data.workflow.deny_bbox[_]
-        - data.workflow.deny_bands[_]
-        module: |
-          package workflow
+    - class: eoap:JSONSchemaHint
+    - class: eoap:RegoPolicyHint
+      queries:
+      - data.workflow.deny_bbox[_]
+      - data.workflow.deny_bands[_]
+      module: |
+        package workflow
 
-          import rego.v1
+        import rego.v1
 
-          # --- BBOX sanity checks ---
+        # --- BBOX sanity checks ---
 
-          deny_bbox contains msg if {
-            b := input.aoi.bbox
-            not valid_bbox(b)
-            msg := sprintf("invalid aoi.bbox: %v", [b])
-          }
+        deny_bbox contains msg if {
+          b := input.aoi.bbox
+          not valid_bbox(b)
+          msg := sprintf("invalid aoi.bbox: %v", [b])
+        }
 
-          valid_bbox(b) if {
-            count(b) == 4
-            b[0] >= -180
-            b[2] <= 180
-            b[1] >= -90
-            b[3] <= 90
-            b[0] < b[2]
-            b[1] < b[3]
-          }
+        valid_bbox(b) if {
+          count(b) == 4
+          b[0] >= -180
+          b[2] <= 180
+          b[1] >= -90
+          b[3] <= 90
+          b[0] < b[2]
+          b[1] < b[3]
+        }
 
-          # --- Bands sanity checks ("green" must be first; second is "nir" or "nir08") ---
+        # --- Bands sanity checks ("green" must be first; second is "nir" or "nir08") ---
 
-          deny_bands contains msg if {
-            b := input.bands
-            not valid_bands(b)
-            msg := sprintf("invalid bands: %v", [b])
-          }
+        deny_bands contains msg if {
+          b := input.bands
+          not valid_bands(b)
+          msg := sprintf("invalid bands: %v", [b])
+        }
 
-          valid_bands(b) if {
-            count(b) == 2
-            b[0] == "green"
-            allowed_nir(b[1])
-          }
+        valid_bands(b) if {
+          count(b) == 2
+          b[0] == "green"
+          allowed_nir(b[1])
+        }
 
-          # helper predicate for the allowed second band (disjunction via multiple rules)
-          allowed_nir(x) if x = "nir"
-          allowed_nir(x) if x = "nir08"
-      - class: cql2:Filter
-        queries:
-        - id: bbox_intersection
-          cql2: s_intersects(item.geometry, ensure_bbox(aoi))
-          message: "The geometry of the provided item must intersect the provided aoi"
+        # helper predicate for the allowed second band (disjunction via multiple rules)
+        allowed_nir(x) if x = "nir"
+        allowed_nir(x) if x = "nir08"
+    - class: eoap:Cql2FilterHint
+      queries:
+      - id: bbox_intersection
+        cql2: s_intersects(item.geometry, ensure_bbox(aoi))
+        message: "The geometry of the provided item must intersect the provided aoi"
     inputs:
       aoi:
         label: area of interest
