@@ -4,6 +4,7 @@ on:
     branches:
       - develop
       - main
+      - parameter-rules
     paths:
       # Only rebuild website when docs have changed
       - 'README.md'
