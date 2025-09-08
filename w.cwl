@@ -9,7 +9,7 @@ $graph:
   id: main
   inputs:
     aoi:
-      doc: area of interest as a bounding box
+      doc: area of interest (AOI) as a bounding box
       id: aoi
       label: area of interest
       type: string
