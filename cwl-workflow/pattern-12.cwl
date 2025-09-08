@@ -25,15 +25,17 @@ $graph:
         module: |
           package workflow
 
+          import rego.v1
+
           # --- BBOX sanity checks ---
 
-          deny_bbox[msg] {
+          deny_bbox contains msg if {
             b := input.aoi.bbox
             not valid_bbox(b)
             msg := sprintf("invalid aoi.bbox: %v", [b])
           }
 
-          valid_bbox(b) {
+          valid_bbox(b) if {
             count(b) == 4
             b[0] >= -180
             b[2] <= 180
@@ -45,27 +47,26 @@ $graph:
 
           # --- Bands sanity checks ("green" must be first; second is "nir" or "nir08") ---
 
-          deny_bands[msg] {
+          deny_bands contains msg if {
             b := input.bands
             not valid_bands(b)
             msg := sprintf("invalid bands: %v", [b])
           }
 
-          valid_bands(b) {
+          valid_bands(b) if {
             count(b) == 2
             b[0] == "green"
             allowed_nir(b[1])
           }
 
           # helper predicate for the allowed second band (disjunction via multiple rules)
-          allowed_nir(x) { x == "nir" }
-          allowed_nir(x) { x == "nir08" }
+          allowed_nir(x) if x = "nir"
+          allowed_nir(x) if x = "nir08"
       - class: cql2:Filter
         queries:
-          - id: bbox_intersection
-            cql2: |
-              s_intersects(inputs.item.geometry, ensure_bbox(inputs.aoi))
-            message: "The geometry of the provided item must intersect the provided aoi"
+        - id: bbox_intersection
+          cql2: s_intersects(item.geometry, ensure_bbox(aoi))
+          message: "The geometry of the provided item must intersect the provided aoi"
     inputs:
       aoi:
         label: area of interest
