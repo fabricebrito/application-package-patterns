@@ -4,6 +4,7 @@ on:
     branches:
       - develop
       - main
+      - parameter-rules
     paths:
       # Only rebuild website when docs have changed
       - 'README.md'
@@ -15,13 +16,13 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout master
+      - name: Checkout main
         uses: actions/checkout@v2
 
       - name: Set up Python 3.x
         uses: actions/setup-python@v2
         with:
           python-version: 3.x
-      - run: pip install mkdocs-material mkdocs-mermaid2-plugin mkdocs-jupyter cwltool ipykernel graphviz pillow cwl-loader eoap-cwlwrap plantuml cwl2puml
+      - run: pip install mkdocs-material mkdocs-mermaid2-plugin mkdocs-jupyter cwltool ipykernel graphviz pillow cwl-loader eoap-cwlwrap plantuml cwl2puml "cwl2ogc>=0.10.0.dev1"
       - run: sudo apt update && sudo apt install -y graphviz wget
       - run: mkdocs gh-deploy --force
