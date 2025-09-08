@@ -1,7 +1,7 @@
 cwlVersion: v1.2
 $namespaces:
   s: https://schema.org/
-  eoap: http://oeap.github.io/schema
+  eoap: http://eoap.github.io/schema
 s:softwareVersion: 1.0.0
 schemas:
   - http://schema.org/version/9.0/schemaorg-current-http.rdf
